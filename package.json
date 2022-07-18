@@ -1,0 +1,30 @@
+{
+  "name": "@hkj_50/firebase-config",
+  "version": "0.1.0",
+  "description": "Something to help configure Firebase when using vue or React.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "firebase-config": "index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hkj/firebase-config.git"
+  },
+  "keywords": [
+    "vue",
+    "react",
+    "firebase"
+  ],
+  "author": "hkj_50 <01.oars-cuffed@icloud.com> (https://github.com/hkj)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hkj/firebase-config/issues"
+  },
+  "homepage": "https://github.com/hkj/firebase-config#readme",
+  "dependencies": {
+    "yargs": "^17.5.1"
+  }
+}
