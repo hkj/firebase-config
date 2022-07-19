@@ -1,6 +1,8 @@
+#!/usr/bin/env node
+'use strict'
+
 const fs = require('fs')
 const yargs = require('yargs/yargs')
-const { hideBin } = require('yargs/helpers')
 
 /*
 I use Firebase with Vue and handle firebaseConfig as an environment variable by reading it
@@ -8,19 +10,55 @@ from an external file. After doing this many times, I decided to reduce the hass
 */
 let prefix = 'VUE_APP_'
 let envFile = '.env.local'
+let typescript = false
+let fbname = 'firebase.js'
 
 let firebaseConfig = {}
 const argv = yargs(process.argv.slice(2))
+.usage(`Usage: $0 [options]\nPaste the Firebase Config in the stdin`)
 .option('output', {
   alias: 'o',
   describe: 'output file',
   default: `${envFile}`
 })
+.option('type', {
+  alias: 't',
+  describe: 'framework type, vue or react',
+  demandOption: true
+})
+.option('source', {
+  alias: 's',
+  describe: 'application root dir',
+  default: './'
+})
 .help().alias('h', 'help')
+.version().alias('v', 'version')
 .argv
 
 envFile = argv.output
-console.log('Paste your firebaseConfig below this and press CTRL-D\n\n')
+
+// TypeScript Check
+let dir = argv.source
+
+if (fs.existsSync(dir + '/tsconfig.json')) {
+  typescript = true
+} else if (fs.existsSync(dir + '/src/tsconfig.json')) {
+  typescript = true
+} else {
+  typescript = false
+}
+
+if (typescript) {
+  fbname = 'firebase.ts'
+}
+
+console.log(
+  `framework type: ${argv.type}\n` +
+  `output file: ${argv.output}, ${fbname}\n` +
+  `application root dir: ${argv.source}\n` +
+  '\nPaste your firebaseConfig below this and press CTRL-D\n'
+  + 'To cancel, press CTRL-C.\n\n'
+)
 
 // read from stdin
 let input = fs.readFileSync('/dev/stdin', 'utf8')
