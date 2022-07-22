@@ -2,11 +2,11 @@
   "name": "@hkj_50/firebase-config",
   "version": "0.1.0",
   "description": "npm cli, Something to help configure Firebase when using vue or React.",
-  "main": "index.js",
+  "main": "index.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "bin": "./index.js",
+  "bin": "./index.mjs",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hkj/firebase-config.git"
@@ -24,6 +24,8 @@
   },
   "homepage": "https://github.com/hkj/firebase-config#readme",
   "dependencies": {
+    "enquirer": "^2.3.6",
+    "json5": "^2.2.1",
     "yargs": "^17.5.1"
   }
 }
