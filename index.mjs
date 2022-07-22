@@ -118,7 +118,7 @@ let packageFile = ''
 if (fileCheck(packageFilePath)) {
   packageFile = fs.readFileSync(res.source + '/package.json', {encoding: 'utf-8'})
 } else {
-  console.error(`error: isn't '${res.source}' the root directory of your app?`)
+  console.log(`error: isn't '${res.source}' the root directory of your app?`)
   process.exit(1)
 }
 
@@ -165,6 +165,8 @@ Paste your firebaseEnvConfig below this and press CTRL-D
 To cancel, press CTRL-C
 
 `
+} else {
+  stdin_message = `input config file: ${res2.filename}`
 }
 
 const title = `
@@ -182,9 +184,14 @@ if (res.input === 'stdin') {
     input: process.stdin,
   })
 } else {
-  r = readline.createInterface({
-    input: fs.createReadStream(res2.filename)
-  })
+  if(fileCheck(res2.filename)) {
+    r = readline.createInterface({
+      input: fs.createReadStream(res2.filename)
+    })
+  } else {
+    console.error(`Error: file(${res2.filename}) not found`)
+    process.exit(1)
+  }
 }
 
 let input = []
@@ -257,9 +264,4 @@ fs.writeFile(res.source + '/src/' + fbname, result, err => {
   }
 })
 
-// const fb = fs.createWriteStream(res.source + '/src/' + fbname)
-// result.forEach((l) => {
-//   fb.write(l + '\n')
-// })
-// console.log(result)
 })()
