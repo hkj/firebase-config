@@ -46,6 +46,17 @@ const fileCheck = (filePath) => {
   return isExist
 }
 
+const fileNameCheck = (fileName) => {
+  if (fileName.match( /^.*[(\\|/|:|\*|?|\"|<|>|\|)].*$/ )) {
+    // console.error(`Error: Forbidden characters are used in filename(${fileName})`)
+    // process.exit(1)
+    // return enquirer.prompt.styles.danger('forbidden characters are used in filename')
+    // return `don't use forbidden char in filename(${fileName})`
+    return false
+  }
+  return true
+}
+
 const argv = yargs(process.argv.slice(2))
 .usage(`Usage: $0 [options]\nPaste the Firebase Config in the stdin`)
 .option('output', {
@@ -95,7 +106,14 @@ if (typescript) {
     type: 'input',
     name: 'output',
     default: '.env.local',
-    message: 'Enviroment Variables file name?'
+    message: 'Enviroment Variables file name?',
+    validate: (fileName) => {
+      if (fileNameCheck(fileName)) {
+        return true
+      } else {
+        return `don't use forbidden char in filename(${fileName})`
+      }
+    }
   },
   {
     type: 'select',
