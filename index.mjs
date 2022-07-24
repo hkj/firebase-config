@@ -45,56 +45,40 @@ const fileCheck = (filePath) => {
   }
   return isExist
 }
-
+/**
+ * Used in validate inside prompt.
+ * Returns false if there is a forbidden character in filename, true otherwise.
+ * @param {string} fileName
+ */
 const fileNameCheck = (fileName) => {
   if (fileName.match( /^.*[(\\|/|:|\*|?|\"|<|>|\|)].*$/ )) {
-    // console.error(`Error: Forbidden characters are used in filename(${fileName})`)
-    // process.exit(1)
-    // return enquirer.prompt.styles.danger('forbidden characters are used in filename')
-    // return `don't use forbidden char in filename(${fileName})`
     return false
   }
   return true
 }
 
-const argv = yargs(process.argv.slice(2))
-.usage(`Usage: $0 [options]\nPaste the Firebase Config in the stdin`)
-.option('output', {
-  alias: 'o',
-  describe: 'output file',
-  default: `${envFile}`
-})
-.option('type', {
-  alias: 't',
-  describe: 'framework type, vue or react',
-})
-.option('source', {
-  alias: 's',
-  describe: 'application root dir',
-  default: './'
-})
-.help().alias('h', 'help')
-.version().alias('v', 'version')
-.argv
-
-envFile = argv.output
-
-// TypeScript Check
-let dir = argv.source
-
-if (fs.existsSync(dir + '/tsconfig.json')) {
-  typescript = true
-} else if (fs.existsSync(dir + '/src/tsconfig.json')) {
-  typescript = true
-} else {
-  typescript = false
-}
-
-if (typescript) {
-  fbname = 'firebase.ts'
-}
-
 (async () => {
+
+  const argv = yargs(process.argv.slice(2))
+  .usage(`Usage: $0 [options]\nPaste the Firebase Config in the stdin`)
+  .option('output', {
+    alias: 'o',
+    describe: 'output file',
+    default: `${envFile}`
+  })
+  .option('type', {
+    alias: 't',
+    describe: 'framework type, vue or react',
+  })
+  .option('source', {
+    alias: 's',
+    describe: 'application root dir',
+    default: './'
+  })
+  .help().alias('h', 'help')
+  .version().alias('v', 'version')
+  .argv
+
   let res = await enquirer.prompt([
   {
     type: 'input',
@@ -120,166 +104,162 @@ if (typescript) {
     name: 'input',
     message: 'In which format should the contents of firebaseConfig be entered?',
     choices: ['stdin', 'file']
-  }
-])
-let res2 = null
-if (res.input === 'file') {
-  res2 = await enquirer.prompt([
-  {
-    type: 'input',
-    name: 'filename',
-    message: 'Where is the path to the file containing firebaseConfig?'
   }])
-}
-const packageFilePath = res.source + '/package.json'
-let packageFile = ''
-if (fileCheck(packageFilePath)) {
-  packageFile = fs.readFileSync(res.source + '/package.json', {encoding: 'utf-8'})
-} else {
-  console.log(`error: isn't '${res.source}' the root directory of your app?`)
-  process.exit(1)
-}
+  let res2 = null
+  if (res.input === 'file') {
+    res2 = await enquirer.prompt([
+    {
+      type: 'input',
+      name: 'filename',
+      message: 'Where is the path to the file containing firebaseConfig?'
+    }])
+  }
+  const packageFilePath = res.source + '/package.json'
+  let packageFile = ''
+  if (fileCheck(packageFilePath)) {
+    packageFile = fs.readFileSync(res.source + '/package.json', {encoding: 'utf-8'})
+  } else {
+    console.log(`error: isn't '${res.source}' the root directory of your app?`)
+    process.exit(1)
+  }
 
-const packageFileJson = JSON.parse(packageFile)
-const objKeys = Object.keys(packageFileJson.dependencies)
-let objDevKeys = []
-if(packageFileJson.devDependencies) {
-  objDevKeys = Object.keys(packageFileJson.devDependencies)
-}
-if(objKeys.includes('react') || objDevKeys.includes('react')) {
-  framework = 'react'
-  prefix = 'REACT_APP_'
-}
+  const packageFileJson = JSON.parse(packageFile)
+  const objKeys = Object.keys(packageFileJson.dependencies)
+  let objDevKeys = []
+  if(packageFileJson.devDependencies) {
+    objDevKeys = Object.keys(packageFileJson.devDependencies)
+  }
+  if(objKeys.includes('react') || objDevKeys.includes('react')) {
+    framework = 'react'
+    prefix = 'REACT_APP_'
+  }
 
-if(objKeys.includes('typescript') || objDevKeys.includes('typescript')) {
-  typescript = true
-}
+  if(objKeys.includes('typescript') || objDevKeys.includes('typescript')) {
+    typescript = true
+  }
 
-const rootTsConfig = res.source + '/tsconfig.json'
-const srcTsConfig = res.source + '/src/tsconfig.json'
-if (fs.existsSync(rootTsConfig) || fs.existsSync(srcTsConfig)) {
-  typescript = true
-}
+  const rootTsConfig = res.source + '/tsconfig.json'
+  const srcTsConfig = res.source + '/src/tsconfig.json'
+  if (fs.existsSync(rootTsConfig) || fs.existsSync(srcTsConfig)) {
+    typescript = true
+  }
 
-if (res.output) {
-  envFile = res.output
-}
+  if (res.output) {
+    envFile = res.output
+  }
 
-if (typescript) {
-  fbname = 'firebase.ts'
-  language = 'TypeScript'
-}
+  if (typescript) {
+    fbname = 'firebase.ts'
+    language = 'TypeScript'
+  }
 
-if (res.language === 'TypeScript') {
-  fbname = 'firbase.ts'
-}
+  if (res.language === 'TypeScript') {
+    fbname = 'firbase.ts'
+  }
 
-let stdin_message = ''
-if (res.input === 'stdin') {
-stdin_message = `
+  let stdin_message = ''
+  if (res.input === 'stdin') {
+  stdin_message = `
 
 
-Paste your firebaseEnvConfig below this and press CTRL-D
-To cancel, press CTRL-C
+  Paste your firebaseEnvConfig below this and press CTRL-D
+  To cancel, press CTRL-C
 
-`
-} else {
-  stdin_message = `input config file: ${res2.filename}`
-}
+  `
+  } else {
+    stdin_message = `input config file: ${res2.filename}`
+  }
 
-const title = `
-framework type: ${framework}
-language: ${language}
-App root dir: ${res.source}
-output file: ${res.source}/${res.output}, ${res.source}/src/${fbname}
-${stdin_message}
-`
-console.log(title)
+  const title = `
+  framework type: ${framework}
+  language: ${language}
+  App root dir: ${res.source}
+  output file: ${res.source}/${res.output}, ${res.source}/src/${fbname}
+  ${stdin_message}
+  `
+  console.log(title)
 
-let r = null
-if (res.input === 'stdin') {
-  r = readline.createInterface({
-    input: process.stdin,
-  })
-} else {
-  if(fileCheck(res2.filename)) {
+  let r = null
+  if (res.input === 'stdin') {
     r = readline.createInterface({
-      input: fs.createReadStream(res2.filename)
+      input: process.stdin,
     })
   } else {
-    console.error(`Error: file(${res2.filename}) not found`)
-    process.exit(1)
-  }
-}
-
-let input = []
-for await (const line of r) {
-  // await input.push(line)
-  input.push(line)
-}
-
-// If something from the stdin matches that looks like a Firebase Config,
-// put it into a firebaseEnvConfig object.
-input.forEach(element => {
-  // e.g. apiKey: "hogehogehogoaoioiuasfd"
-  let result = element.match(/\s*(.+)\:\s*\"(.+)\".*/)
-  if(result) {
-    if(result.length > 2) {
-      firebaseEnvConfig[result[1]] = result[2]
+    if(fileCheck(res2.filename)) {
+      r = readline.createInterface({
+        input: fs.createReadStream(res2.filename)
+      })
+    } else {
+      console.error(`Error: file(${res2.filename}) not found`)
+      process.exit(1)
     }
   }
-})
 
-// Split the string in CamelCase with uppercase letters and join them with '_'.
-// Reference https://easyramble.com/split-camelcase-word-with-javascript.htmlconsole.log(key)
-const isNotEmptyItem = (element) => {
-  if (element === '' || element === undefined) {
-    return false
+  let input = []
+  for await (const line of r) {
+    // await input.push(line)
+    input.push(line)
   }
-  return true
-};
 
-const separateStrWithCamelCase = (str) => {
-  return str.split(/(^[a-z]+)|([A-Z][a-z]+)/).filter(isNotEmptyItem)
-};
+  // If something from the stdin matches that looks like a Firebase Config,
+  // put it into a firebaseEnvConfig object.
+  input.forEach(element => {
+    // e.g. apiKey: "hogehogehogoaoioiuasfd"
+    let result = element.match(/\s*(.+)\:\s*\"(.+)\".*/)
+    if(result) {
+      if(result.length > 2) {
+        firebaseEnvConfig[result[1]] = result[2]
+      }
+    }
+  })
 
-const keys = Object.keys(firebaseEnvConfig)
-const envLines = []
+  // Split the string in CamelCase with uppercase letters and join them with '_'.
+  // Reference https://easyramble.com/split-camelcase-word-with-javascript.htmlconsole.log(key)
+  const isNotEmptyItem = (element) => {
+    if (element === '' || element === undefined) {
+      return false
+    }
+    return true
+  };
 
-keys.forEach((k) => {
-  let left = prefix + separateStrWithCamelCase(k).join('_').toUpperCase()
-  let right = firebaseEnvConfig[k]
-  envLines.push(left + '=' + `"${right}"`)
-  firebaseConfig[k] = 'process.env.' + left
-})
+  const separateStrWithCamelCase = (str) => {
+    return str.split(/(^[a-z]+)|([A-Z][a-z]+)/).filter(isNotEmptyItem)
+  };
 
-// write to file
-let ws = fs.createWriteStream(res.source + '/' + envFile)
+  const keys = Object.keys(firebaseEnvConfig)
+  const envLines = []
 
-envLines.forEach((line) => {
-  ws.write(line + '\n')
-})
-// Avoid displaying [object object]
-firebaseConfig = json5.stringify(firebaseConfig, null, 2)
-const result =
-`
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+  keys.forEach((k) => {
+    let left = prefix + separateStrWithCamelCase(k).join('_').toUpperCase()
+    let right = firebaseEnvConfig[k]
+    envLines.push(left + '=' + `"${right}"`)
+    firebaseConfig[k] = 'process.env.' + left
+  })
 
-// Your web app's Firebase configuration
-const firebaseConfig = ${firebaseConfig}
+  // write to file
+  let ws = fs.createWriteStream(res.source + '/' + envFile)
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-`
+  envLines.forEach((line) => {
+    ws.write(line + '\n')
+  })
 
-fs.writeFile(res.source + '/src/' + fbname, result, err => {
-  if (err) {
-    console.error(err)
-    process.exit(1)
-  }
-})
+  // read template, write YourAppDir/src/firebase.(js|ts)
+  // fs.readFile('./lib/template/normal.template', 'utf8', (err, template) => {
+  fs.readFile('./lib/template/emulator.template', 'utf8', (err, template) => {
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
+    let result = template.replace(
+      '${firebaseConfig}',
+      json5.stringify(firebaseConfig, null , 2)
+    )
 
+    fs.writeFile(res.source + '/src/' + fbname, result, err => {
+      if (err) {
+        console.error(err)
+        process.exit(1)
+      }
+    })
+  })
 })()
