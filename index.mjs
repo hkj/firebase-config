@@ -5,6 +5,7 @@ import yargs from 'yargs'
 import inquirer from 'inquirer'
 import * as readline from 'readline'
 import json5 from 'json5'
+import path from 'path'
 
 /*
 I use Firebase with Vue and handle firebaseConfig as an environment variable by reading it
@@ -245,12 +246,18 @@ Firebase configuration into environment variable files and firebase.js, etc.
     ws.write(line + '\n')
   })
 
+  const currentFileUrl = import.meta.url
+  const templateDir = path.resolve(
+    new URL(currentFileUrl).pathname,
+    '../lib/template'
+  )
+  console.log(templateDir)
   // read template, write YourAppDir/src/firebase.(js|ts)
-  let templateFile = 'lib/template/'
+  let templateFile = ''
   if (res.emulator) {
-    templateFile += 'emulator.template'
+    templateFile = templateDir + '/emulator.template'
   } else {
-    templateFile += 'normal.template'
+    templateFile = templateDir + '/normal.template'
   }
   fs.readFile(templateFile, 'utf8', (err, template) => {
     if (err) {
