@@ -2,7 +2,7 @@
 
 import * as fs from 'fs'
 import yargs from 'yargs'
-import enquirer from 'enquirer'
+import inquirer from 'inquirer'
 import * as readline from 'readline'
 import json5 from 'json5'
 
@@ -59,27 +59,19 @@ const fileNameCheck = (fileName) => {
 
 (async () => {
 
+  const usage =
+`Usage: $0
+
+Tools for Vue or React.Separate In answer to the question,
+Firebase configuration into environment variable files and firebase.js, etc.
+`
   const argv = yargs(process.argv.slice(2))
-  .usage(`Usage: $0 [options]\nPaste the Firebase Config in the stdin`)
-  .option('output', {
-    alias: 'o',
-    describe: 'output file',
-    default: `${envFile}`
-  })
-  .option('type', {
-    alias: 't',
-    describe: 'framework type, vue or react',
-  })
-  .option('source', {
-    alias: 's',
-    describe: 'application root dir',
-    default: './'
-  })
+  .usage(usage).wrap(null)
   .help().alias('h', 'help')
   .version().alias('v', 'version')
   .argv
 
-  let res = await enquirer.prompt([
+  let res = await inquirer.prompt([
   {
     type: 'input',
     name: 'source',
@@ -100,20 +92,30 @@ const fileNameCheck = (fileName) => {
     }
   },
   {
-    type: 'select',
+    type: 'confirm',
+    name: 'emulator',
+    message: `Do you use firebase's emulator?`,
+    default: false
+  },
+  {
+    type: 'list',
     name: 'input',
     message: 'In which format should the contents of firebaseConfig be entered?',
     choices: ['stdin', 'file']
   }])
+
   let res2 = null
   if (res.input === 'file') {
-    res2 = await enquirer.prompt([
+    res2 = await inquirer.prompt([
     {
       type: 'input',
       name: 'filename',
-      message: 'Where is the path to the file containing firebaseConfig?'
+      message: 'Where is the path to the file containing firebaseConfig?',
+      default: './firebaseConfig.js'
     }])
   }
+  // If there is no package.json in APP_ROUTE, exit
+  // if there is 'react' in package.json, determine that react is used
   const packageFilePath = res.source + '/package.json'
   let packageFile = ''
   if (fileCheck(packageFilePath)) {
@@ -244,8 +246,13 @@ const fileNameCheck = (fileName) => {
   })
 
   // read template, write YourAppDir/src/firebase.(js|ts)
-  // fs.readFile('./lib/template/normal.template', 'utf8', (err, template) => {
-  fs.readFile('./lib/template/emulator.template', 'utf8', (err, template) => {
+  let templateFile = './lib/template/'
+  if (res.emulator) {
+    templateFile += 'emulator.template'
+  } else {
+    templateFile += 'normal.template'
+  }
+  fs.readFile(templateFile, 'utf8', (err, template) => {
     if (err) {
       console.error(err)
       process.exit(1)
@@ -255,11 +262,20 @@ const fileNameCheck = (fileName) => {
       json5.stringify(firebaseConfig, null , 2)
     )
 
-    fs.writeFile(res.source + '/src/' + fbname, result, err => {
+    const writeFileName =res.source + '/src/' + fbname
+    fs.writeFile(writeFileName, result, err => {
       if (err) {
         console.error(err)
         process.exit(1)
       }
     })
+    const endMessage = `
+
+use Emulator: ${res.emulator}
+finished writing to
+'${writeFileName}',
+'${res.source}/${res.output}'`
+
+    console.log(endMessage)
   })
 })()
