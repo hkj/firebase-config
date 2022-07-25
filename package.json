@@ -1,6 +1,6 @@
 {
   "name": "@hkj_50/firebase-config",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "npm cli, Something to help configure Firebase when using vue or React.",
   "main": "index.mjs",
   "scripts": {
