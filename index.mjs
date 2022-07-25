@@ -173,11 +173,13 @@ Firebase configuration into environment variable files and firebase.js, etc.
     stdin_message = `input config file: ${res2.filename}`
   }
 
+  let outputEnvFileName = `${res.source}/${res.output}`.replace('\/\/','\/')
+  let outputFbFileName = `${res.source}/src/${fbname}`.replace('\/\/','\/')
   const title = `
   framework type: ${framework}
   language: ${language}
   App root dir: ${res.source}
-  output file: ${res.source}/${res.output}, ${res.source}/src/${fbname}
+  output file: ${outputEnvFileName}, ${outputFbFileName}
   ${stdin_message}
   `
   console.log(title)
@@ -251,7 +253,6 @@ Firebase configuration into environment variable files and firebase.js, etc.
     new URL(currentFileUrl).pathname,
     '../lib/template'
   )
-  console.log(templateDir)
   // read template, write YourAppDir/src/firebase.(js|ts)
   let templateFile = ''
   if (res.emulator) {
@@ -269,8 +270,8 @@ Firebase configuration into environment variable files and firebase.js, etc.
       json5.stringify(firebaseConfig, null , 2)
     )
 
-    const writeFileName =res.source + '/src/' + fbname
-    fs.writeFile(writeFileName, result, err => {
+    // const writeFileName =res.source + '/src/' + fbname
+    fs.writeFile(outputFbFileName, result, err => {
       if (err) {
         console.error(err)
         process.exit(1)
@@ -280,8 +281,8 @@ Firebase configuration into environment variable files and firebase.js, etc.
 
 use Emulator: ${res.emulator}
 finished writing to
-'${writeFileName}',
-'${res.source}/${res.output}'`
+'${outputFbFileName}',
+'${outputEnvFileName}'`
 
     console.log(endMessage)
   })
