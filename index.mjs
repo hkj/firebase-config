@@ -246,7 +246,7 @@ Firebase configuration into environment variable files and firebase.js, etc.
   })
 
   // read template, write YourAppDir/src/firebase.(js|ts)
-  let templateFile = './lib/template/'
+  let templateFile = 'lib/template/'
   if (res.emulator) {
     templateFile += 'emulator.template'
   } else {
