@@ -270,7 +270,6 @@ Firebase configuration into environment variable files and firebase.js, etc.
       json5.stringify(firebaseConfig, null , 2)
     )
 
-    // const writeFileName =res.source + '/src/' + fbname
     fs.writeFile(outputFbFileName, result, err => {
       if (err) {
         console.error(err)
