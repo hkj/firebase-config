@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/hkj/firebase-config#readme",
   "dependencies": {
-    "inquirer": "^9.0.2",
+    "inquirer": "^12.9.1",
     "json5": "^2.2.1",
     "yargs": "^17.5.1"
   }
